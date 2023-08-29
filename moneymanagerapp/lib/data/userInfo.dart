@@ -29,13 +29,17 @@ class Transaction {
 }
 
 const List<Transaction> transactions1 = [
-  Transaction(ItemCategoryType.fashion, TransactionType.outflow, "Shoes", "Puma Sneaker", "€3,500.00", "Oct, 23"),
-  Transaction(ItemCategoryType.fashion, TransactionType.outflow, "Bag", "Gucci Flax", "€10,500.00", "Sept, 13")
+  Transaction(ItemCategoryType.fashion, TransactionType.outflow, "Shoes",
+      "Puma Sneaker", "€3,500.00", "Oct, 23"),
+  Transaction(ItemCategoryType.fashion, TransactionType.outflow, "Bag",
+      "Gucci Flax", "€10,500.00", "Sept, 13")
 ];
 
 const List<Transaction> transactions2 = [
-  Transaction(ItemCategoryType.payments, TransactionType.inflow, "Payments", "Transfer from Eden", "€13,000.00", "Oct, 2"),
-  Transaction(ItemCategoryType.grocery, TransactionType.outflow, "Food", "Chicken Wing", "€1,500.00", "Oct, 18")
+  Transaction(ItemCategoryType.payments, TransactionType.inflow, "Payments",
+      "Transfer from Eden", "€13,000.00", "Oct, 2"),
+  Transaction(ItemCategoryType.grocery, TransactionType.outflow, "Food",
+      "Chicken Wing", "€1,500.00", "Oct, 18")
 ];
 
 const userdata = UserInfo(
@@ -43,4 +47,4 @@ const userdata = UserInfo(
     totalBalance: "€4,586.00",
     inflow: "€4,000.00",
     outflow: "€2000.00",
-    transactions: []);
+    transactions: [...transactions1, ...transactions2]);

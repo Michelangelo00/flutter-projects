@@ -33,7 +33,7 @@ class HomeScreenTab extends StatelessWidget {
             Center(
               child: Column(children: [
                 Text(
-                  "€${userdata.totalBalance}",
+                  userdata.totalBalance,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontSize: fontSizeHeading, fontWeight: FontWeight.w800),
                 ),
@@ -52,15 +52,15 @@ class HomeScreenTab extends StatelessWidget {
               children: [
                 Expanded(
                     child: IncomeExpenseCard(
-                  expenseData: ExpenseData("Income", "€${userdata.inflow}",
-                      Icons.arrow_upward_rounded),
+                  expenseData: ExpenseData(
+                      "Income", userdata.inflow, Icons.arrow_upward_rounded),
                 )),
                 const SizedBox(
                   width: defaultSpacing,
                 ),
                 Expanded(
                     child: IncomeExpenseCard(
-                  expenseData: ExpenseData("Expense", "-€${userdata.outflow}",
+                  expenseData: ExpenseData("Expense", "-${userdata.outflow}",
                       Icons.arrow_downward_rounded),
                 ))
               ],
@@ -84,7 +84,7 @@ class HomeScreenTab extends StatelessWidget {
             ),
             ...userdata.transactions.map((transaction) => TransictionItemTitle(
                   transaction: transaction,
-                ))
+                )),
           ],
         ),
       ),

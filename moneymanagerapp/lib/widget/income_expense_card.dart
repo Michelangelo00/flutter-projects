@@ -16,7 +16,6 @@ class IncomeExpenseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
     return Container(
       //margin: const EdgeInsets.only(right: defaultSpacing),
       height: 80,
