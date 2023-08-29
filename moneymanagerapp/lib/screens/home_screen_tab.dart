@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:moneymanagerapp/data/userInfo.dart';
 import 'package:moneymanagerapp/utils/constants.dart';
 import 'package:moneymanagerapp/widget/income_expense_card.dart';
+import 'package:moneymanagerapp/widget/transiction_item_title.dart';
 
 class HomeScreenTab extends StatelessWidget {
   const HomeScreenTab({super.key});
@@ -17,7 +19,7 @@ class HomeScreenTab extends StatelessWidget {
               height: defaultSpacing * 4,
             ),
             ListTile(
-              title: const Text("Hey! Michelangelo!"),
+              title: Text("Hey! ${userdata.name}!"),
               leading: ClipRRect(
                 borderRadius:
                     const BorderRadius.all(Radius.circular(defaultRadius * 4)),
@@ -31,7 +33,7 @@ class HomeScreenTab extends StatelessWidget {
             Center(
               child: Column(children: [
                 Text(
-                  "€4,586.00",
+                  "€${userdata.totalBalance}",
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontSize: fontSizeHeading, fontWeight: FontWeight.w800),
                 ),
@@ -45,21 +47,21 @@ class HomeScreenTab extends StatelessWidget {
             const SizedBox(
               height: defaultSpacing * 2,
             ),
-            const Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Expanded(
                     child: IncomeExpenseCard(
-                  expenseData: ExpenseData(
-                      "Income", "€2,400", Icons.arrow_upward_rounded),
+                  expenseData: ExpenseData("Income", "€${userdata.inflow}",
+                      Icons.arrow_upward_rounded),
                 )),
-                SizedBox(
+                const SizedBox(
                   width: defaultSpacing,
                 ),
                 Expanded(
                     child: IncomeExpenseCard(
-                  expenseData: ExpenseData(
-                      "Expense", "-€710.00", Icons.arrow_downward_rounded),
+                  expenseData: ExpenseData("Expense", "-€${userdata.outflow}",
+                      Icons.arrow_downward_rounded),
                 ))
               ],
             ),
@@ -79,7 +81,10 @@ class HomeScreenTab extends StatelessWidget {
             const Text(
               "Today",
               style: TextStyle(color: fontSubHeading),
-            )
+            ),
+            ...userdata.transactions.map((transaction) => TransictionItemTitle(
+                  transaction: transaction,
+                ))
           ],
         ),
       ),
