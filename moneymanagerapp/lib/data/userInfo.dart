@@ -3,12 +3,12 @@ enum TransactionType { outflow, inflow }
 enum ItemCategoryType { fashion, grocery, payments }
 
 class UserInfo {
-  final String name;
-  final String totalBalance;
-  final String inflow;
-  final String outflow;
-  final List<Transaction> transactions;
-  const UserInfo(
+  String name;
+  String totalBalance;
+  String inflow;
+  String outflow;
+  List<Transaction> transactions;
+  UserInfo(
       {required this.name,
       required this.totalBalance,
       required this.inflow,
@@ -42,9 +42,9 @@ const List<Transaction> transactions2 = [
       "Chicken Wing", "€1,500.00", "Oct, 18")
 ];
 
-const userdata = UserInfo(
+UserInfo userdata = UserInfo(
     name: "Michelangelo",
-    totalBalance: "€4,586.00",
-    inflow: "€4,000.00",
-    outflow: "€2000.00",
-    transactions: [...transactions1, ...transactions2]);
+    totalBalance: "€0",
+    inflow: "€0",
+    outflow: "€0",
+    transactions: []);

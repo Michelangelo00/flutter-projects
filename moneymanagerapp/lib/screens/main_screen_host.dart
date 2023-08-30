@@ -20,7 +20,7 @@ class _MainScreenHostState extends State<MainScreenHost> {
   Widget buildTabContent(int index) {
     switch (index) {
       case 0:
-        return const HomeScreenTab();
+        return HomeScreenTab(transactions: transactions, userdata: userdata);
       case 1:
         return Container();
       case 2:
@@ -28,14 +28,19 @@ class _MainScreenHostState extends State<MainScreenHost> {
       case 3:
         return const HomeProfileTab();
       default:
-        return const HomeScreenTab();
+        return HomeScreenTab(transactions: transactions, userdata: userdata);
     }
   }
 
-/*
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showAddTransactionDialog(context, addNewTransaction);
+        },
+        child: const Icon(Icons.add),
+      ),
       body: buildTabContent(currentIndex),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
@@ -55,47 +60,12 @@ class _MainScreenHostState extends State<MainScreenHost> {
       ),
     );
   }
-  */
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          // Tuo contenuto principale qui
-          buildTabContent(currentIndex),
-          // Posizionamento del FloatingActionButton
-          Positioned(
-            bottom: 10, // posizione dal fondo dello schermo
-            right: 10, // posizione dalla destra dello schermo
-            child: FloatingActionButton(
-              onPressed: () {
-                showAddTransactionDialog(context);
-              },
-              child: const Icon(Icons.add),
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: (index) {
-          setState(() {
-            currentIndex = index;
-          });
-        },
-        selectedItemColor: secondaryDark,
-        unselectedItemColor: fontLight,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: "Stat"),
-          BottomNavigationBarItem(icon: Icon(Icons.wallet), label: "Wallet"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-        ],
-      ),
-    );
-  }
 
-  void showAddTransactionDialog(BuildContext context) {
+  void showAddTransactionDialog(
+      BuildContext context,
+      Function(
+              ItemCategoryType, TransactionType, String, String, String, String)
+          addTransaction) {
     // variabili temporanee per memorizzare i dati della nuova transazione
     String newItemCategoryName = '';
     String newItemName = '';
@@ -103,109 +73,156 @@ class _MainScreenHostState extends State<MainScreenHost> {
     ItemCategoryType newItemCategoryType = ItemCategoryType.fashion;
     TransactionType newTransictionType = TransactionType.inflow;
     DateTime now = DateTime.now();
-    String formattedDate = DateFormat('dd-MM-yyyy').format(now);
+    String formattedDate = DateFormat('dd-MM-yyyy HH:mm').format(now);
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Dropdown per la selezione della categoria
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: DropdownButton<ItemCategoryType>(
-                      isExpanded: true,
-                      icon: const Padding(
-                        padding: EdgeInsets.only(left: 150),
-                        child: Icon(Icons.arrow_drop_down),
+        return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+          return AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  onChanged: (value) {
+                    newItemCategoryName = value;
+                  },
+                  decoration: const InputDecoration(
+                      labelText: 'Nome della transazione'),
+                ),
+                TextField(
+                  onChanged: (value) {
+                    newItemName = value;
+                  },
+                  decoration: const InputDecoration(
+                      labelText: 'Descrizione della transazione'),
+                ),
+                // Dropdown per la selezione della categoria
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: DropdownButton<ItemCategoryType>(
+                        isExpanded: true,
+                        icon: const Padding(
+                          padding: EdgeInsets.only(left: 150),
+                          child: Icon(Icons.arrow_drop_down),
+                        ),
+                        value: newItemCategoryType,
+                        hint: const Text("Seleziona una categoria"),
+                        items: ItemCategoryType.values
+                            .map((ItemCategoryType category) {
+                          return DropdownMenuItem<ItemCategoryType>(
+                            value: category,
+                            child: Text(category.toString().split('.').last),
+                          );
+                        }).toList(),
+                        onChanged: (ItemCategoryType? newValue) {
+                          setState(() {
+                            if (newValue != null) {
+                              newItemCategoryType = newValue;
+                            }
+                          });
+                        },
                       ),
-                      value: newItemCategoryType,
-                      items: ItemCategoryType.values
-                          .map((ItemCategoryType category) {
-                        return DropdownMenuItem<ItemCategoryType>(
-                          value: category,
-                          child: Text(category.toString().split('.').last),
-                        );
-                      }).toList(),
-                      onChanged: (ItemCategoryType? newValue) {
-                        if (newValue != null) {
-                          newItemCategoryType = newValue;
-                        }
-                      },
                     ),
-                  ),
-                ],
-              ),
-              // Dropdown per la selezione del tipo di transazione
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: DropdownButton<TransactionType>(
-                      isExpanded: true,
-                      icon: const Padding(
-                        padding: EdgeInsets.only(
-                            left: 150), // Sposta l'icona a destra
-                        child: Icon(Icons.arrow_drop_down),
+                  ],
+                ),
+                // Dropdown per la selezione del tipo di transazione
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: DropdownButton<TransactionType>(
+                        isExpanded: true,
+                        icon: const Padding(
+                          padding: EdgeInsets.only(
+                              left: 150), // Sposta l'icona a destra
+                          child: Icon(Icons.arrow_drop_down),
+                        ),
+                        value: newTransictionType,
+                        items:
+                            TransactionType.values.map((TransactionType type) {
+                          return DropdownMenuItem<TransactionType>(
+                            value: type,
+                            child: Text(type.toString().split('.').last),
+                          );
+                        }).toList(),
+                        onChanged: (TransactionType? newValue) {
+                          setState(() {
+                            if (newValue != null) {
+                              newTransictionType = newValue;
+                            }
+                          });
+                        },
                       ),
-                      value: newTransictionType,
-                      items: TransactionType.values.map((TransactionType type) {
-                        return DropdownMenuItem<TransactionType>(
-                          value: type,
-                          child: Text(type.toString().split('.').last),
-                        );
-                      }).toList(),
-                      onChanged: (TransactionType? newValue) {
-                        if (newValue != null) {
-                          newTransictionType = newValue;
-                        }
-                      },
                     ),
-                  ),
-                ],
-              ),
-              TextField(
-                onChanged: (value) {
-                  newItemName = value;
-                },
-                decoration: InputDecoration(labelText: 'Nome dell\'elemento'),
-              ),
-              TextField(
-                onChanged: (value) {
-                  newAmount = double.parse(value);
-                },
-                decoration: InputDecoration(labelText: 'Importo'),
-                keyboardType: TextInputType.number,
-              ),
-              // ... altri campi
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  // Aggiungi la nuova transazione alla lista
-                  transactions.add(Transaction(
-                      newItemCategoryType, // <-- Nota: Devi convertire la stringa in un enum
-                      newTransictionType, // <-- Nota: Devi convertire la stringa in un enum
-                      newItemCategoryName,
-                      newItemName,
-                      newAmount
-                          .toString(), // <-- Converte l'importo in una stringa
-                      formattedDate // <-- Usa la data formattata
-                      ));
-                });
-                Navigator.of(context).pop(); // chiude il dialog
-              },
-              child: const Text("Salva"),
+                  ],
+                ),
+                TextField(
+                  onChanged: (value) {
+                    newAmount = double.parse(value);
+                  },
+                  decoration: const InputDecoration(labelText: 'Importo'),
+                  keyboardType: TextInputType.number,
+                ),
+                // ... altri campi
+              ],
             ),
-          ],
-        );
+            actions: [
+              TextButton(
+                onPressed: () {
+                  addTransaction(
+                    newItemCategoryType,
+                    newTransictionType,
+                    newItemCategoryName,
+                    newItemName,
+                    newAmount.toString(),
+                    formattedDate,
+                  );
+                  Navigator.of(context).pop(); // chiude il dialog
+                },
+                child: const Text("Salva"),
+              ),
+            ],
+          );
+        });
       },
     );
+  }
+
+  void addNewTransaction(ItemCategoryType type, TransactionType transType,
+      String categoryName, String itemName, String amount, String date) {
+    setState(() {
+      transactions.insert(
+          0,
+          Transaction(
+            type,
+            transType,
+            categoryName,
+            itemName,
+            amount,
+            date,
+          ));
+      // Usa NumberFormat per formattare le cifre
+      final oCcy = NumberFormat("#,##0.00", "en_US");
+
+      double transactionAmount = double.parse(amount);
+      double currentInflow =
+          double.parse(userdata.inflow.substring(1).replaceAll(',', ''));
+      double currentOutflow =
+          double.parse(userdata.outflow.substring(1).replaceAll(',', ''));
+
+      if (transType == TransactionType.inflow) {
+        currentInflow += transactionAmount;
+      } else if (transType == TransactionType.outflow) {
+        currentOutflow += transactionAmount;
+      }
+
+      userdata.inflow = '€${oCcy.format(currentInflow)}';
+      userdata.outflow = '€${oCcy.format(currentOutflow)}';
+      userdata.totalBalance = '€${oCcy.format(currentInflow - currentOutflow)}';
+    });
   }
 }

@@ -5,7 +5,11 @@ import 'package:moneymanagerapp/widget/income_expense_card.dart';
 import 'package:moneymanagerapp/widget/transiction_item_title.dart';
 
 class HomeScreenTab extends StatelessWidget {
-  const HomeScreenTab({super.key});
+  final List<Transaction> transactions;
+  UserInfo userdata;
+
+  HomeScreenTab(
+      {super.key, required this.transactions, required this.userdata});
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +73,7 @@ class HomeScreenTab extends StatelessWidget {
               height: defaultSpacing * 2,
             ),
             Text(
-              "Recent Transictions",
+              "Recent Transactions",
               style: Theme.of(context)
                   .textTheme
                   .headline6
@@ -82,7 +86,7 @@ class HomeScreenTab extends StatelessWidget {
               "Today",
               style: TextStyle(color: fontSubHeading),
             ),
-            ...userdata.transactions.map((transaction) => TransictionItemTitle(
+            ...transactions.map((transaction) => TransictionItemTitle(
                   transaction: transaction,
                 )),
           ],
