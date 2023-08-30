@@ -73,7 +73,7 @@ class HomeScreenTab extends StatelessWidget {
               height: defaultSpacing * 2,
             ),
             Text(
-              "Recent Transactions",
+              "Transazioni",
               style: Theme.of(context)
                   .textTheme
                   .headline6
@@ -81,10 +81,6 @@ class HomeScreenTab extends StatelessWidget {
             ),
             const SizedBox(
               height: defaultSpacing,
-            ),
-            const Text(
-              "Today",
-              style: TextStyle(color: fontSubHeading),
             ),
             ...transactions.map((transaction) => TransictionItemTitle(
                   transaction: transaction,

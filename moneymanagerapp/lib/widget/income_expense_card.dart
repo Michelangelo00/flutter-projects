@@ -21,8 +21,17 @@ class IncomeExpenseCard extends StatelessWidget {
       height: 80,
       padding: const EdgeInsets.all(defaultSpacing),
       decoration: BoxDecoration(
-          color: expenseData.label == "Income" ? primaryDark : accent,
-          borderRadius: const BorderRadius.all(Radius.circular(defaultRadius))),
+        color: expenseData.label == "Income" ? primaryDark : accent,
+        borderRadius: const BorderRadius.all(Radius.circular(defaultRadius)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2), // Colore dell'ombra
+            spreadRadius: 1, // L'estensione dell'ombra
+            blurRadius: 5, // La sfocatura dell'ombra
+            offset: const Offset(0, 3), // La direzione dell'ombra
+          ),
+        ],
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
