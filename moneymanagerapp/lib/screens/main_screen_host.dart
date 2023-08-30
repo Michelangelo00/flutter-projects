@@ -5,6 +5,7 @@ import 'package:moneymanagerapp/screens/home_screen_tab.dart';
 import 'package:moneymanagerapp/utils/constants.dart';
 import 'package:moneymanagerapp/widget/transiction_item_title.dart';
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class MainScreenHost extends StatefulWidget {
   const MainScreenHost({super.key});
@@ -16,6 +17,12 @@ class MainScreenHost extends StatefulWidget {
 class _MainScreenHostState extends State<MainScreenHost> {
   List<Transaction> transactions = [];
   var currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    initializeDateFormatting('it_IT', null);
+  }
 
   Widget buildTabContent(int index) {
     switch (index) {
@@ -70,10 +77,12 @@ class _MainScreenHostState extends State<MainScreenHost> {
     String newItemCategoryName = '';
     String newItemName = '';
     double newAmount = 0.0;
-    ItemCategoryType newItemCategoryType = ItemCategoryType.fashion;
-    TransactionType newTransictionType = TransactionType.inflow;
+    ItemCategoryType newItemCategoryType = ItemCategoryType.none;
+    TransactionType newTransictionType = TransactionType.none;
     DateTime now = DateTime.now();
-    String formattedDate = DateFormat('dd-MM-yyyy HH:mm').format(now);
+    String formattedDate = DateFormat('dd-MM-yyyy HH:mm', 'it').format(now);
+    String categoryErrorMessage = '';
+    String transactionErrorMessage = '';
 
     showDialog(
       context: context,
@@ -106,16 +115,22 @@ class _MainScreenHostState extends State<MainScreenHost> {
                       child: DropdownButton<ItemCategoryType>(
                         isExpanded: true,
                         icon: const Padding(
-                          padding: EdgeInsets.only(left: 150),
+                          padding: EdgeInsets.only(left: 10),
                           child: Icon(Icons.arrow_drop_down),
                         ),
                         value: newItemCategoryType,
-                        hint: const Text("Seleziona una categoria"),
+                        hint: const Text("Scegli la categoria"),
                         items: ItemCategoryType.values
                             .map((ItemCategoryType category) {
                           return DropdownMenuItem<ItemCategoryType>(
                             value: category,
-                            child: Text(category.toString().split('.').last),
+                            child: category == ItemCategoryType.none
+                                ? const Text(
+                                    "Scegli la categoria",
+                                    overflow: TextOverflow
+                                        .ellipsis, // Gestisci il troncamento del testo
+                                  )
+                                : Text(category.toString().split('.').last),
                           );
                         }).toList(),
                         onChanged: (ItemCategoryType? newValue) {
@@ -129,6 +144,14 @@ class _MainScreenHostState extends State<MainScreenHost> {
                     ),
                   ],
                 ),
+                if (categoryErrorMessage.isNotEmpty)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      categoryErrorMessage,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ),
                 // Dropdown per la selezione del tipo di transazione
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -138,15 +161,22 @@ class _MainScreenHostState extends State<MainScreenHost> {
                         isExpanded: true,
                         icon: const Padding(
                           padding: EdgeInsets.only(
-                              left: 150), // Sposta l'icona a destra
+                              left: 10), // Sposta l'icona a destra
                           child: Icon(Icons.arrow_drop_down),
                         ),
                         value: newTransictionType,
+                        hint: const Text("Scegli la transazione"),
                         items:
                             TransactionType.values.map((TransactionType type) {
                           return DropdownMenuItem<TransactionType>(
                             value: type,
-                            child: Text(type.toString().split('.').last),
+                            child: type == TransactionType.none
+                                ? const Text(
+                                    "Scegli la transazione",
+                                    overflow: TextOverflow
+                                        .ellipsis, // Gestisci il troncamento del testo
+                                  )
+                                : Text(type.toString().split('.').last),
                           );
                         }).toList(),
                         onChanged: (TransactionType? newValue) {
@@ -160,6 +190,14 @@ class _MainScreenHostState extends State<MainScreenHost> {
                     ),
                   ],
                 ),
+                if (transactionErrorMessage.isNotEmpty)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      transactionErrorMessage,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ),
                 TextField(
                   onChanged: (value) {
                     newAmount = double.parse(value);
@@ -167,21 +205,39 @@ class _MainScreenHostState extends State<MainScreenHost> {
                   decoration: const InputDecoration(labelText: 'Importo'),
                   keyboardType: TextInputType.number,
                 ),
-                // ... altri campi
               ],
             ),
             actions: [
               TextButton(
                 onPressed: () {
-                  addTransaction(
-                    newItemCategoryType,
-                    newTransictionType,
-                    newItemCategoryName,
-                    newItemName,
-                    newAmount.toString(),
-                    formattedDate,
-                  );
-                  Navigator.of(context).pop(); // chiude il dialog
+                  bool isValid = true;
+
+                  if (newItemCategoryType == ItemCategoryType.none) {
+                    categoryErrorMessage = 'Scegli una categoria.';
+                    isValid = false;
+                  } else {
+                    categoryErrorMessage = '';
+                  }
+
+                  if (newTransictionType == TransactionType.none) {
+                    transactionErrorMessage = 'Scegli una transazione.';
+                    isValid = false;
+                  } else {
+                    transactionErrorMessage = '';
+                  }
+
+                  setState(() {});
+                  if (isValid) {
+                    addTransaction(
+                      newItemCategoryType,
+                      newTransictionType,
+                      newItemCategoryName,
+                      newItemName,
+                      newAmount.toString(),
+                      formattedDate,
+                    );
+                    Navigator.of(context).pop();
+                  } // chiude il dialog
                 },
                 child: const Text("Salva"),
               ),

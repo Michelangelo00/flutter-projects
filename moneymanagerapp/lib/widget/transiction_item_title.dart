@@ -15,6 +15,8 @@ class TransictionItemTitle extends StatelessWidget {
         return "+";
       case TransactionType.outflow:
         return "-";
+      case TransactionType.none:
+        return "";
     }
   }
 

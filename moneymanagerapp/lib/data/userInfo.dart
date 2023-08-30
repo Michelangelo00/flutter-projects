@@ -1,6 +1,6 @@
-enum TransactionType { outflow, inflow }
+enum TransactionType { outflow, inflow, none }
 
-enum ItemCategoryType { fashion, grocery, payments }
+enum ItemCategoryType { fashion, grocery, payments, none }
 
 class UserInfo {
   String name;
