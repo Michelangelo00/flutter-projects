@@ -65,8 +65,10 @@ class _HomeScreenTabState extends State<HomeScreenTab> {
               child: Column(children: [
                 Text(
                   "${widget.userdata.totalBalance}",
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontSize: fontSizeHeading, fontWeight: FontWeight.w800),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontSize: 25, fontWeight: FontWeight.w800),
                 ),
                 Text("Total balance",
                     style: Theme.of(context)
@@ -83,7 +85,7 @@ class _HomeScreenTabState extends State<HomeScreenTab> {
               children: [
                 Expanded(
                     child: IncomeExpenseCard(
-                  expenseData: ExpenseData("Income", widget.userdata.entrata,
+                  expenseData: ExpenseData("Entrate", widget.userdata.entrata,
                       Icons.arrow_upward_rounded),
                 )),
                 const SizedBox(
@@ -92,7 +94,7 @@ class _HomeScreenTabState extends State<HomeScreenTab> {
                 Expanded(
                     child: IncomeExpenseCard(
                   expenseData: ExpenseData(
-                      "Expense",
+                      "Uscite",
                       "-${widget.userdata.uscita}",
                       Icons.arrow_downward_rounded),
                 ))

@@ -21,7 +21,7 @@ class IncomeExpenseCard extends StatelessWidget {
       height: 80,
       padding: const EdgeInsets.all(defaultSpacing),
       decoration: BoxDecoration(
-        color: expenseData.label == "Income" ? primaryDark : accent,
+        color: expenseData.label == "Entrate" ? primaryDark : accent,
         borderRadius: const BorderRadius.all(Radius.circular(defaultRadius)),
         boxShadow: [
           BoxShadow(

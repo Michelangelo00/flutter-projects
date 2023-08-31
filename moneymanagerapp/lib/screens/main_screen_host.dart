@@ -56,11 +56,14 @@ class _MainScreenHostState extends State<MainScreenHost> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showAddTransactionDialog(context, addNewTransaction);
-        },
-        child: const Icon(Icons.add),
+      floatingActionButton: Opacity(
+        opacity: 0.7,
+        child: FloatingActionButton(
+          onPressed: () {
+            showAddTransactionDialog(context, addNewTransaction);
+          },
+          child: const Icon(Icons.add),
+        ),
       ),
       body: buildTabContent(currentIndex),
       bottomNavigationBar: BottomNavigationBar(
