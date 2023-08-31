@@ -53,8 +53,24 @@ class _TransictionItemTitleState extends State<TransictionItemTitle> {
     }
   }
 
-  Color getRandomBgColor() {
-    return Color(Random().nextInt(0xFF000000));
+  Color getRandomBgColor(ItemCategoryType categoryType) {
+    switch (categoryType) {
+      case ItemCategoryType.cibo:
+        return Colors.amber;
+      case ItemCategoryType.svago:
+        return Colors.lightGreenAccent;
+      case ItemCategoryType.vestiario:
+        return Colors.lightBlueAccent;
+      case ItemCategoryType.sport:
+        return Colors.deepPurpleAccent;
+      case ItemCategoryType.macchina:
+        return const Color(0xFF8D6E63);
+      case ItemCategoryType.altro:
+        return Colors.deepOrangeAccent;
+      case ItemCategoryType.none:
+      default:
+        return Colors.grey;
+    }
   }
 
   @override
@@ -75,7 +91,7 @@ class _TransictionItemTitleState extends State<TransictionItemTitle> {
         leading: Container(
             padding: const EdgeInsets.all(defaultSpacing / 2),
             decoration: BoxDecoration(
-                color: getRandomBgColor(),
+                color: getRandomBgColor(widget.transaction.categoryType),
                 borderRadius:
                     const BorderRadius.all(Radius.circular(defaultRadius / 2))),
             child: getIconForCategory(widget.transaction.categoryType)),
