@@ -6,6 +6,7 @@ import 'package:moneymanagerapp/utils/constants.dart';
 import 'package:moneymanagerapp/widget/transiction_item_title.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:moneymanagerapp/utils/database_helper.dart';
 
 class MainScreenHost extends StatefulWidget {
   const MainScreenHost({super.key});
@@ -17,17 +18,27 @@ class MainScreenHost extends StatefulWidget {
 class _MainScreenHostState extends State<MainScreenHost> {
   List<Transaction> transactions = [];
   var currentIndex = 0;
+  HomeScreenTab? homeScreenTab;
 
   @override
   void initState() {
     super.initState();
+    _reloadTransactions();
+    homeScreenTab = HomeScreenTab(
+        transactions: transactions,
+        userdata: userdata,
+        onReload: _reloadTransactions);
     initializeDateFormatting('it_IT', null);
   }
 
   Widget buildTabContent(int index) {
     switch (index) {
       case 0:
-        return HomeScreenTab(transactions: transactions, userdata: userdata);
+        return HomeScreenTab(
+          transactions: transactions,
+          userdata: userdata,
+          onReload: () {},
+        );
       case 1:
         return Container();
       case 2:
@@ -35,7 +46,10 @@ class _MainScreenHostState extends State<MainScreenHost> {
       case 3:
         return const HomeProfileTab();
       default:
-        return HomeScreenTab(transactions: transactions, userdata: userdata);
+        return HomeScreenTab(
+            transactions: transactions,
+            userdata: userdata,
+            onReload: _reloadTransactions);
     }
   }
 
@@ -251,9 +265,46 @@ class _MainScreenHostState extends State<MainScreenHost> {
   void addNewTransaction(ItemCategoryType type, TransactionType transType,
       String categoryName, String itemName, String amount, String date) {
     setState(() {
+      // Crea una nuova istanza della classe Transaction
+      Transaction newTransaction = Transaction(
+        null,
+        type,
+        transType,
+        categoryName,
+        itemName,
+        amount,
+        date,
+      );
+
+      // Inserisci la nuova transazione nel database
+      DatabaseHelper.instance
+          .insertTransaction(newTransaction)
+          .then((_) {})
+          .catchError((e) {
+        print("Errore durante l'inserimento nel DB: $e");
+      });
+
+      double transactionAmount =
+          double.parse(amount.replaceAll('€', '').trim());
+      double currententrata = double.parse(
+          userdata.entrata.replaceAll('€', '').trim().replaceAll(',', ''));
+      double currentuscita = double.parse(
+          userdata.uscita.replaceAll('€', '').trim().replaceAll(',', ''));
+
+      if (transType == TransactionType.entrata) {
+        currententrata += transactionAmount;
+      } else if (transType == TransactionType.uscita) {
+        currentuscita += transactionAmount;
+      }
+
+      userdata.entrata = formatCurrency(currententrata);
+      userdata.uscita = formatCurrency(currentuscita);
+      userdata.totalBalance = formatCurrency(currententrata - currentuscita);
+
       transactions.insert(
           0,
           Transaction(
+            null,
             type,
             transType,
             categoryName,
@@ -261,24 +312,50 @@ class _MainScreenHostState extends State<MainScreenHost> {
             amount,
             date,
           ));
-      // Usa NumberFormat per formattare le cifre
-      final oCcy = NumberFormat("#,##0.00", "en_US");
-
-      double transactionAmount = double.parse(amount);
-      double currentInflow =
-          double.parse(userdata.inflow.substring(1).replaceAll(',', ''));
-      double currentOutflow =
-          double.parse(userdata.outflow.substring(1).replaceAll(',', ''));
-
-      if (transType == TransactionType.inflow) {
-        currentInflow += transactionAmount;
-      } else if (transType == TransactionType.outflow) {
-        currentOutflow += transactionAmount;
-      }
-
-      userdata.inflow = '€${oCcy.format(currentInflow)}';
-      userdata.outflow = '€${oCcy.format(currentOutflow)}';
-      userdata.totalBalance = '€${oCcy.format(currentInflow - currentOutflow)}';
+      _reloadTransactions();
+      updateHomeScreenTab();
     });
+  }
+
+  void _reloadTransactions() async {
+    List<Transaction> newTransactions =
+        await DatabaseHelper.instance.getTransactions();
+    double totalentrata = 0.0;
+    double totaluscita = 0.0;
+
+    for (Transaction t in newTransactions) {
+      if (t.transactionType == TransactionType.entrata) {
+        totalentrata += double.parse(t.amount);
+      } else if (t.transactionType == TransactionType.uscita) {
+        totaluscita += double.parse(t.amount);
+      }
+    }
+
+    userdata.entrata = formatCurrency(totalentrata);
+    userdata.uscita = formatCurrency(totaluscita);
+    userdata.totalBalance = formatCurrency(totalentrata - totaluscita);
+    setState(() {
+      transactions = newTransactions;
+    });
+  }
+
+  void updateHomeScreenTab() {
+    setState(() {
+      homeScreenTab = HomeScreenTab(
+          transactions: transactions,
+          userdata: userdata,
+          onReload: _reloadTransactions);
+    });
+  }
+
+  String formatCurrency(double value) {
+    final oCcy = NumberFormat("#,##0.00", "en_US");
+    String formattedValue = oCcy
+        .format(value.abs()); // prende il valore assoluto per la formattazione
+    if (value < 0) {
+      return '-€$formattedValue'; // inserisce il segno meno davanti al simbolo dell'euro
+    } else {
+      return '€$formattedValue';
+    }
   }
 }

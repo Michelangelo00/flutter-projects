@@ -71,15 +71,27 @@ class DatabaseHelper {
 
     return List.generate(maps.length, (i) {
       return Transaction(
-        ItemCategoryType.values
-            .firstWhere((e) => e.toString() == maps[i]['categoryType']),
-        TransactionType.values
-            .firstWhere((e) => e.toString() == maps[i]['transactionType']),
+        maps[i]['id'],
+        ItemCategoryType.values.firstWhere(
+            (e) => e.toString() == maps[i]['categoryType'],
+            orElse: () => ItemCategoryType.none),
+        TransactionType.values.firstWhere(
+            (e) => e.toString() == maps[i]['transactionType'],
+            orElse: () => TransactionType.none),
         maps[i]['itemCategoryName'],
         maps[i]['itemName'],
         maps[i]['amount'],
         maps[i]['date'],
       );
     });
+  }
+
+  Future<int> deleteTransaction(int id) async {
+    final db = await database;
+    return await db!.delete(
+      'transactions',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 }

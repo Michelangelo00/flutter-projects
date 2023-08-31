@@ -1,21 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:moneymanagerapp/data/userInfo.dart';
 import 'package:moneymanagerapp/utils/constants.dart';
+import 'package:moneymanagerapp/utils/database_helper.dart';
 import 'package:moneymanagerapp/widget/income_expense_card.dart';
 import 'package:moneymanagerapp/widget/transiction_item_title.dart';
 
 class HomeScreenTab extends StatefulWidget {
   final List<Transaction> transactions;
-  UserInfo userdata;
+  final UserInfo userdata;
+  final VoidCallback onReload;
 
-  HomeScreenTab(
-      {super.key, required this.transactions, required this.userdata});
+  const HomeScreenTab(
+      {Key? key,
+      required this.transactions,
+      required this.userdata,
+      required this.onReload})
+      : super(key: key);
 
   @override
   State<HomeScreenTab> createState() => _HomeScreenTabState();
 }
 
 class _HomeScreenTabState extends State<HomeScreenTab> {
+  List<Transaction> _transactions = []; // 1. Aggiorna lo stato
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTransactions();
+  }
+
+  _loadTransactions() async {
+    List<Transaction> loadedTransactions =
+        await DatabaseHelper.instance.getTransactions();
+    setState(() {
+      _transactions = loadedTransactions;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -42,7 +64,7 @@ class _HomeScreenTabState extends State<HomeScreenTab> {
             Center(
               child: Column(children: [
                 Text(
-                  widget.userdata.totalBalance,
+                  "${widget.userdata.totalBalance}",
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontSize: fontSizeHeading, fontWeight: FontWeight.w800),
                 ),
@@ -61,7 +83,7 @@ class _HomeScreenTabState extends State<HomeScreenTab> {
               children: [
                 Expanded(
                     child: IncomeExpenseCard(
-                  expenseData: ExpenseData("Income", widget.userdata.inflow,
+                  expenseData: ExpenseData("Income", widget.userdata.entrata,
                       Icons.arrow_upward_rounded),
                 )),
                 const SizedBox(
@@ -71,7 +93,7 @@ class _HomeScreenTabState extends State<HomeScreenTab> {
                     child: IncomeExpenseCard(
                   expenseData: ExpenseData(
                       "Expense",
-                      "-${widget.userdata.outflow}",
+                      "-${widget.userdata.uscita}",
                       Icons.arrow_downward_rounded),
                 ))
               ],
@@ -89,12 +111,60 @@ class _HomeScreenTabState extends State<HomeScreenTab> {
             const SizedBox(
               height: defaultSpacing,
             ),
-            ...widget.transactions.map((transaction) => TransictionItemTitle(
-                  transaction: transaction,
-                )),
+            FutureBuilder<List<Transaction>>(
+              future: DatabaseHelper.instance.getTransactions(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(
+                    child: Text('Si è verificato un errore: ${snapshot.error}'),
+                  );
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(
+                    child: Text('Nessuna transazione disponibile.'),
+                  );
+                } else {
+                  List<Transaction> transactions = snapshot.data!;
+                  transactions = List.from(transactions.reversed);
+                  return Column(
+                    children: transactions.map((transaction) {
+                      return TransictionItemTitle(
+                        transaction: transaction,
+                        onReload: _loadTransactions,
+                        onTransactionDeleted: _onTransactionDeleted,
+                      );
+                    }).toList(),
+                  );
+                }
+              },
+            ),
           ],
         ),
       ),
     );
+  }
+
+  void _onTransactionDeleted(double amount, TransactionType type) {
+    setState(() {
+      if (type == TransactionType.entrata) {
+        String entrataWithoutCurrency =
+            widget.userdata.entrata.replaceAll('€', '').trim();
+        widget.userdata.entrata =
+            '${double.parse(entrataWithoutCurrency) - amount}€';
+      } else if (type == TransactionType.uscita) {
+        String uscitaWithoutCurrency =
+            widget.userdata.uscita.replaceAll('€', '').trim();
+        widget.userdata.uscita =
+            '${double.parse(uscitaWithoutCurrency) - amount}€';
+      }
+
+      String entrataWithoutCurrency =
+          widget.userdata.entrata.replaceAll('€', '').trim();
+      String uscitaWithoutCurrency =
+          widget.userdata.uscita.replaceAll('€', '').trim();
+      widget.userdata.totalBalance =
+          '${double.parse(entrataWithoutCurrency) - double.parse(uscitaWithoutCurrency)}€';
+    });
   }
 }

@@ -3,20 +3,53 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:moneymanagerapp/data/userInfo.dart';
 import 'package:moneymanagerapp/utils/constants.dart';
+import 'package:moneymanagerapp/utils/database_helper.dart';
 
-class TransictionItemTitle extends StatelessWidget {
+class TransictionItemTitle extends StatefulWidget {
   final Transaction transaction;
+  final VoidCallback onReload;
+  final Function(double, TransactionType) onTransactionDeleted;
 
-  const TransictionItemTitle({super.key, required this.transaction});
+  const TransictionItemTitle({
+    super.key,
+    required this.transaction,
+    required this.onReload,
+    required this.onTransactionDeleted,
+  });
 
+  @override
+  State<TransictionItemTitle> createState() => _TransictionItemTitleState();
+}
+
+class _TransictionItemTitleState extends State<TransictionItemTitle> {
   String getSign(TransactionType type) {
     switch (type) {
-      case TransactionType.inflow:
+      case TransactionType.entrata:
         return "+";
-      case TransactionType.outflow:
+      case TransactionType.uscita:
         return "-";
       case TransactionType.none:
         return "";
+    }
+  }
+
+  Icon getIconForCategory(ItemCategoryType categoryType) {
+    switch (categoryType) {
+      case ItemCategoryType.cibo:
+        return const Icon(Icons.fastfood);
+      case ItemCategoryType.svago:
+        return const Icon(Icons.music_video);
+      case ItemCategoryType.vestiario:
+        return const Icon(Icons.shopping_bag);
+      case ItemCategoryType.sport:
+        return const Icon(Icons.sports);
+      case ItemCategoryType.macchina:
+        return const Icon(Icons.directions_car);
+      case ItemCategoryType.altro:
+        return const Icon(Icons.more_horiz);
+      case ItemCategoryType.none:
+      default:
+        return const Icon(Icons.not_interested);
     }
   }
 
@@ -45,44 +78,89 @@ class TransictionItemTitle extends StatelessWidget {
                 color: getRandomBgColor(),
                 borderRadius:
                     const BorderRadius.all(Radius.circular(defaultRadius / 2))),
-            child: transaction.categoryType == ItemCategoryType.fashion
-                ? const Icon(Icons.supervised_user_circle_sharp)
-                : const Icon(Icons.house)),
+            child: getIconForCategory(widget.transaction.categoryType)),
         title: Text(
-          transaction.itemCategoryName,
+          widget.transaction.itemCategoryName,
           style: Theme.of(context).textTheme.bodyText1?.copyWith(
               color: fontHeading,
               fontSize: fontSizeTitle,
               fontWeight: FontWeight.w700),
         ),
         subtitle: Text(
-          transaction.itemName,
+          widget.transaction.itemName,
           style: Theme.of(context).textTheme.bodyText1?.copyWith(
                 color: fontSubHeading,
                 fontSize: fontSizeBody,
               ),
         ),
-        trailing: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
+        trailing: SizedBox(
+          width: 150,
+          child: Row(
             children: [
-              Text(
-                "${getSign(transaction.transactionType)}${transaction.amount}",
-                style: Theme.of(context).textTheme.bodyText1?.copyWith(
-                    color:
-                        transaction.transactionType == TransactionType.outflow
-                            ? Colors.red
-                            : fontHeading,
-                    fontSize: fontSizeBody),
-              ),
-              Text(
-                transaction.date,
-                style: Theme.of(context).textTheme.bodyText1?.copyWith(
-                      color: fontSubHeading,
-                      fontSize: fontSizeBody,
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      "${getSign(widget.transaction.transactionType)}${widget.transaction.amount}",
+                      style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                            color: widget.transaction.transactionType ==
+                                    TransactionType.uscita
+                                ? Colors.red
+                                : fontHeading,
+                            fontSize: 14,
+                          ),
                     ),
-              )
-            ]),
+                    Text(
+                      widget.transaction.date,
+                      style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                            color: fontSubHeading,
+                            fontSize: 11,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete),
+                iconSize: 18,
+                onPressed: () async {
+                  bool? shouldDelete = await showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Conferma'),
+                        content: const Text(
+                            'Sei sicuro di voler eliminare questa transazione?'),
+                        actions: [
+                          TextButton(
+                            child: const Text('Annulla'),
+                            onPressed: () => Navigator.of(context).pop(false),
+                          ),
+                          TextButton(
+                            child: const Text('Conferma'),
+                            onPressed: () => Navigator.of(context).pop(true),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  if (shouldDelete == true) {
+                    double amountAsDouble =
+                        double.parse(widget.transaction.amount);
+                    widget.onTransactionDeleted(
+                        amountAsDouble, widget.transaction.transactionType);
+                    await DatabaseHelper.instance
+                        .deleteTransaction(widget.transaction.id!);
+                    widget.onReload();
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
