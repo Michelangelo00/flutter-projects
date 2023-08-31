@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:moneymanagerapp/screens/main_screen_host.dart';
+import 'package:moneymanagerapp/utils/database_helper.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await DatabaseHelper.instance.database;
   runApp(const MyApp());
 }
 
