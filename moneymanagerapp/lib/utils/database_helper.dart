@@ -94,4 +94,37 @@ class DatabaseHelper {
       whereArgs: [id],
     );
   }
+
+  Future<List<Transaction>> getTransactionsForMonthAndYear(
+      String month, String year, List<String> months) async {
+    sql.Database? db = await database;
+    int monthIndex =
+        months.indexOf(month) + 1; // Converti il nome del mese in numero
+    String monthStr = monthIndex < 10 ? '0$monthIndex' : monthIndex.toString();
+
+    // Query per la ricerca del mese e dell'anno
+    final List<Map<String, dynamic>> maps = await db!.query(
+      tableTransactions,
+      where: "substr(date, 7, 4) = ? AND substr(date, 4, 2) = ?",
+      whereArgs: [year, monthStr],
+      orderBy: 'date DESC',
+    );
+
+    // Ritorna una lista di transazioni appartenenti a quel mese e quell'anno
+    return List.generate(maps.length, (i) {
+      return Transaction(
+        maps[i]['id'],
+        ItemCategoryType.values.firstWhere(
+            (e) => e.toString() == maps[i]['categoryType'],
+            orElse: () => ItemCategoryType.none),
+        TransactionType.values.firstWhere(
+            (e) => e.toString() == maps[i]['transactionType'],
+            orElse: () => TransactionType.none),
+        maps[i]['itemCategoryName'],
+        maps[i]['itemName'],
+        maps[i]['amount'],
+        maps[i]['date'],
+      );
+    });
+  }
 }
