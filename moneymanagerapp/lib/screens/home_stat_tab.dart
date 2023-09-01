@@ -64,11 +64,8 @@ class _HomeStatTabState extends State<HomeStatTab> {
     });
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
-
     // 1. Numero di giorni nel mese
     int daysInMonth = DateTime(
       int.parse(selectedYear!),
@@ -119,7 +116,19 @@ class _HomeStatTabState extends State<HomeStatTab> {
               Container(
                 height: 200,
                 color: Colors.transparent,
-                child: SfCartesianChart(),
+                child: SfCartesianChart(
+                  primaryXAxis: CategoryAxis(
+                    // Configurazione per l'asse X
+                    minimum: 1,
+                    maximum: double.parse(daysInMonth as String),
+                  ),
+                  primaryYAxis: NumericAxis(
+                    // Configurazione per l'asse Y
+                    minimum: 0,
+                    maximum: upperLimit,
+                  ),
+                  // altri parametri...
+                ),
               ),
               const SizedBox(height: 16),
               // Dropdowns per il mese e l'anno
