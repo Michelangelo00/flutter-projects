@@ -80,8 +80,23 @@ class _HomeStatTabState extends State<HomeStatTab> {
             .map((transaction) => double.parse(transaction.amount))
             .reduce((double a, double b) => a > b ? a : b);
 
-    // 3. Aggiungi un margine (ad esempio, il 10% del maxTransaction)
-    double upperLimit = maxTransaction * 1.1;
+    // Calcola la somma delle transazioni in uscita per ogni giorno
+    Map<int, double> sumPerDay = {};
+    for (var transaction in _transactions
+        .where((t) => t.transactionType == TransactionType.uscita)) {
+      String dateStr = transaction.date;
+      int day = int.parse(dateStr.split('-')[0]);
+      double amount = double.parse(transaction.amount);
+      sumPerDay[day] = (sumPerDay[day] ?? 0) + amount;
+    }
+
+    // Trova il giorno con la somma massima
+    double maxSum = sumPerDay.values.isNotEmpty
+        ? sumPerDay.values.reduce((a, b) => a > b ? a : b)
+        : 0.0;
+
+    // Usa maxSum come limite superiore per l'asse Y
+    double upperLimit = maxSum * 1.1; // Aggiungi un margine del 10%
 
     return ListView(
       shrinkWrap: true,
@@ -114,20 +129,33 @@ class _HomeStatTabState extends State<HomeStatTab> {
               const SizedBox(height: 16),
               // Grafico
               Container(
-                height: 200,
+                height: 250,
+                width: 600,
                 color: Colors.transparent,
                 child: SfCartesianChart(
-                  primaryXAxis: CategoryAxis(
+                  primaryXAxis: NumericAxis(
                     // Configurazione per l'asse X
                     minimum: 1,
-                    maximum: double.parse(daysInMonth as String),
+                    maximum: double.parse(daysInMonth.toString()),
+                    interval: 1,
+                    title: AxisTitle(text: 'Giorno del mese'),
+                    majorGridLines: const MajorGridLines(width: 0),
                   ),
                   primaryYAxis: NumericAxis(
                     // Configurazione per l'asse Y
                     minimum: 0,
-                    maximum: upperLimit,
+                    maximum: upperLimit > 0 ? upperLimit + 10 : 100,
+                    title: AxisTitle(text: 'Importo in €'),
                   ),
-                  // altri parametri...
+                  tooltipBehavior: TooltipBehavior(enable: true),
+                  series: <ChartSeries>[
+                    LineSeries<MapEntry<int, double>, int>(
+                      dataSource: sumPerDay.entries.toList(),
+                      xValueMapper: (entry, _) => entry.key,
+                      yValueMapper: (entry, _) => entry.value,
+                      enableTooltip: true,
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
