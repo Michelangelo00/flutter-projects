@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moneymanagerapp/components/navbar.dart';
 import 'package:moneymanagerapp/data/userInfo.dart';
 import 'package:moneymanagerapp/utils/constants.dart';
 import 'package:moneymanagerapp/utils/database_helper.dart';
@@ -101,24 +102,12 @@ class _HomeStatTabState extends State<HomeStatTab> {
     return ListView(
       shrinkWrap: true,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 18.0),
-          child: ListTile(
-            title: Text("Hey! ${widget.userdata.name}!"),
-            leading: ClipRRect(
-              borderRadius:
-                  const BorderRadius.all(Radius.circular(defaultRadius * 4)),
-              child: Image.asset("assets/image/profile.jpeg"),
-            ),
-            trailing: const Icon(Icons.notifications),
-          ),
-        ),
+        const Navbar(),
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Titolo
               Text(
                 "${selectedMonth ?? 'Mese attuale'} ${selectedYear ?? 'Anno attuale'}",
                 style: const TextStyle(
@@ -127,85 +116,55 @@ class _HomeStatTabState extends State<HomeStatTab> {
                 ),
               ),
               const SizedBox(height: 16),
-              // Grafico
-              Container(
-                height: 250,
-                width: 600,
-                color: Colors.transparent,
-                child: SfCartesianChart(
-                  primaryXAxis: NumericAxis(
-                    // Configurazione per l'asse X
-                    minimum: 1,
-                    maximum: double.parse(daysInMonth.toString()),
-                    interval: 1,
-                    title: AxisTitle(text: 'Giorno del mese'),
-                    majorGridLines: const MajorGridLines(width: 0),
-                  ),
-                  primaryYAxis: NumericAxis(
-                    // Configurazione per l'asse Y
-                    minimum: 0,
-                    maximum: upperLimit > 0 ? upperLimit + 10 : 100,
-                    title: AxisTitle(text: 'Importo in €'),
-                  ),
-                  tooltipBehavior: TooltipBehavior(enable: true),
-                  series: <ChartSeries>[
-                    LineSeries<MapEntry<int, double>, int>(
-                      dataSource: sumPerDay.entries.toList(),
-                      xValueMapper: (entry, _) => entry.key,
-                      yValueMapper: (entry, _) => entry.value,
-                      enableTooltip: true,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Dropdowns per il mese e l'anno
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Anno
-                  Expanded(
-                    child: DropdownButton<String>(
-                      menuMaxHeight: 300,
-                      isExpanded: true,
-                      value: selectedYear,
-                      hint: const Text("Scegli l'anno"),
-                      items: years.map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
-                        setState(() {
-                          selectedYear = newValue;
-                          loadData();
-                        });
+                  Container(
+                    decoration: BoxDecoration(
+                      boxShadow: const [
+                        BoxShadow(
+                            color: Colors.black12,
+                            offset: Offset.zero,
+                            blurRadius: 5,
+                            spreadRadius: 1),
+                      ],
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10.0),
+                      border:
+                          Border.all(color: const Color.fromARGB(255, 0, 0, 0)),
+                    ),
+                    child: InkWell(
+                      onTap: () async {
+                        String? selectedFormat = await _selectDate(context);
+                        if (selectedFormat != null) {
+                          // Usa la stringa come preferisci
+                          print(selectedFormat); // Esempio
+                        }
                       },
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.date_range,
+                              color: Color.fromARGB(255, 0, 0, 0),
+                              size: 24.0,
+                            ),
+                            const SizedBox(width: 8.0),
+                            Text(
+                              "${selectedMonth ?? 'Mese attuale'} ${selectedYear ?? 'Anno attuale'}",
+                              style: const TextStyle(
+                                color: Color.fromARGB(255, 0, 0, 0),
+                                fontSize: 18.0,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
-                  // Mese
-                  Expanded(
-                    child: DropdownButton<String>(
-                      menuMaxHeight: 300,
-                      isExpanded: true,
-                      value: selectedMonth,
-                      hint: const Text("Scegli il mese"),
-                      items: months.map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
-                        setState(() {
-                          selectedMonth = newValue;
-                          loadData();
-                        });
-                      },
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -270,5 +229,69 @@ class _HomeStatTabState extends State<HomeStatTab> {
       widget.userdata.totalBalance =
           '${double.parse(entrataWithoutCurrency) - double.parse(uscitaWithoutCurrency)}€';
     });
+  }
+
+  Future<String?> _selectDate(BuildContext context) async {
+    DateTime? pickedDate;
+    String selectedFormat = "G, M e A"; // Imposta un valore predefinito
+
+    await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now().add(Duration(days: 365 * 100)),
+      helpText: "Seleziona data",
+      cancelText: 'Annulla',
+      confirmText: 'OK',
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            primaryColor: const Color.fromARGB(255, 0, 0, 0),
+            hintColor: const Color.fromARGB(255, 0, 0, 0),
+            colorScheme:
+                const ColorScheme.light(primary: Color.fromARGB(255, 0, 0, 0)),
+            buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(child: child!),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      selectedFormat = "Anno e Mese";
+                      Navigator.pop(context, DateTime.now());
+                    },
+                    child: Text("Seleziona tutto il mese"),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      selectedFormat = "Solo Anno";
+                      Navigator.pop(context, DateTime.now());
+                    },
+                    child: Text("Seleziona tutto l'anno"),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    ).then((date) {
+      pickedDate = date;
+    });
+
+    if (pickedDate != null) {
+      if (selectedFormat == "Solo Anno") {
+        return "${pickedDate?.year}";
+      } else if (selectedFormat == "Anno e Mese") {
+        return "${pickedDate?.month}/${pickedDate?.year}";
+      } else {
+        return "${pickedDate?.day}/${pickedDate?.month}/${pickedDate?.year}";
+      }
+    }
+    return null;
   }
 }

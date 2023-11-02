@@ -72,21 +72,26 @@ class _MainScreenHostState extends State<MainScreenHost> {
         ),
       ),
       body: buildTabContent(currentIndex),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: (index) {
-          setState(() {
-            currentIndex = index;
-          });
-        },
-        selectedItemColor: secondaryDark,
-        unselectedItemColor: fontLight,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: "Stat"),
-          BottomNavigationBarItem(icon: Icon(Icons.wallet), label: "Wallet"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-        ],
+      bottomNavigationBar: Theme(
+        data: Theme.of(context).copyWith(
+          canvasColor: const Color.fromARGB(255, 69, 39, 241),
+        ),
+        child: BottomNavigationBar(
+          currentIndex: currentIndex,
+          onTap: (index) {
+            setState(() {
+              currentIndex = index;
+            });
+          },
+          selectedItemColor: Colors.white,
+          unselectedItemColor: fontLight,
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+            BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: "Stat"),
+            BottomNavigationBarItem(icon: Icon(Icons.wallet), label: "Wallet"),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+          ],
+        ),
       ),
     );
   }
